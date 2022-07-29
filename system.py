@@ -1,32 +1,34 @@
-#!/usr/bin/env python3
-
-#Need a system
-
-from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, SpeedPercent, MoveTank
-from ev3dev2.sensor import INPUT_1
-from ev3dev2.sensor.lego import TouchSensor
-from ev3dev2.led import Leds
-from ev3dev2.power import PowerSupply
-import ev3dev2.fonts as fonts
 import paho.mqtt.client as mqtt
+import scapy.all as scapy
+import argparse
 import os
 import time
 import socket
 import json
+import subprocess
 
 message = 0
 topic = "topic/hospital"
 topic2 = "topic/status"
-
 checklist = range(256)
 
+for ping in range(1,10):
+    address = "127.0.0." + str(ping)
+    res = subprocess.call(['ping', '-c', '3', address])
+    if res == 0:
+        print( "ping to", address, "OK")
+    elif res == 2:
+        print("no response from", address)
+    else:
+        print("ping to", address, "failed!")
 
 
 
 def get_IPAddress():
     
 
-class mqtt_operation():
+class mqtt_operation(self):
+
     def on_connect(client, userdata, flags, rc):
         print("Connected with result code "+str(rc))
         print("Standby")
@@ -71,13 +73,8 @@ def publish_message():
     client.publish(topic2, "Done")
     client.disconnect()
 
-def programshit():
-    power = PowerSupply()
-    print(power.measured_volts)
-
 while True:
     # awaiting_message()
-    programshit()
     time.sleep(2)
     publish_message()
 
