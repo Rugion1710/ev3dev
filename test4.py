@@ -1,6 +1,6 @@
-import ifaddr
+import ifaddr_test
 
-adapters = ifaddr.get_adapters()
+adapters = ifaddr_test.get_adapters()
 device_adapters = []
 main_list = []
 for adapter in adapters:
