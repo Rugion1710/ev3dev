@@ -11,6 +11,7 @@ class Network(object):
             network = '192.168.1.1/24'
         else:
             network = self.ip + '/24'
+        print(type(network))
         print("scanning network")
         nm = nmap.PortScanner()
         nm.scan(hosts=network, arguments='-sn')
