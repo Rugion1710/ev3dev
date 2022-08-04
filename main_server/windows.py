@@ -5,11 +5,15 @@ import nmap
 import netifaces as ni
 import winreg as wr
 from pprint import pprint
+from getmac import get_mac_address
+from scapy.all import *
 
 message = 0
 main_topic = "topic/hospital"
 status_topic = "topic/status"
 broker_ip = "192.168.43.52"
+mac_address_list = []
+ip_address_list = []
 
 df = pd.read_excel('conversion_table.xlsx')
 prefix_length = df['CIDR prefix length'].tolist()
@@ -54,7 +58,7 @@ def on_message(self, client, userdata, msg):
     print(message)
     client.disconnect()
 
-class mqtt_operation():
+class MQTT_operation():
     def on_connect(self, client, userdata, flags, rc):
         print("Connected with result code "+str(rc))
         print("Standby")
@@ -93,29 +97,48 @@ class mqtt_operation():
 class Robot():
     pass
 
-class Network(object):
+class Storage():
+    pass
+
+class Network_operation(object):
     def __init__(self, ip=""): 
         ip = get_ip_with_cidr()
         self.ip = ip
         print(self.ip)
 
-    def network_scanner(self):
+    def nmap_scan(self):
+        global ip_address_list
         if len(self.ip) == 0:
             network = '192.168.1.1/24'
         else:
             network = self.ip
         print("scanning network")
+        ans, unans = arping(network, verbose=0)
+        # for s,r in ans:
+        #     mac_address_list.append(r[Ether].src)
+        #     ip_address_list.append(s[ARP].pdst)
+        #     print("{} {}".format(r[Ether].src,s[ARP].pdst))
+        # print("scanning network")
         nm = nmap.PortScanner()
         nm.scan(hosts=network, arguments='-sn')
         hosts_list = [(x, nm[x]['status']['state']) for x in nm.all_hosts()]
         for host, status in hosts_list:
+            ip_address_list.append(host)
             print("Host\t{}".format(host))
+        print(ip_address_list)
 
-D = Network()
-D.network_scanner()
+    def arp_scan(self):
+        request = Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst=self.ip)
+        ans, unans = srp(request, timeout=2, retry=1)
+        result = []
+        for sent, received in ans:
+            result.append({'IP': received.psrc, 'MAC': received.hwsrc})
+        return result
+
+D = Network_operation()
+print(D.arp_scan())
 
 # get_ip_with_cidr()
-
 
 # while True:
 #     # awaiting_message()
