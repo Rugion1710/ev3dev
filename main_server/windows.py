@@ -7,6 +7,7 @@ import winreg as wr
 from pprint import pprint
 from getmac import get_mac_address
 from scapy.all import *
+import socket
 
 message = 0
 main_topic = "topic/hospital"
@@ -14,6 +15,8 @@ status_topic = "topic/status"
 broker_ip = "192.168.43.52"
 mac_address_list = []
 ip_address_list = []
+devices_dictionary = []
+ev3dev_devices_info = []
 
 df = pd.read_excel('conversion_table.xlsx')
 prefix_length = df['CIDR prefix length'].tolist()
@@ -128,15 +131,45 @@ class Network_operation(object):
         print(ip_address_list)
 
     def arp_scan(self):
+        global devices_dictionary
         request = Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst=self.ip)
         ans, unans = srp(request, timeout=2, retry=1)
         result = []
         for sent, received in ans:
             result.append({'IP': received.psrc, 'MAC': received.hwsrc})
-        return result
+        devices_dictionary = result
+        print(devices_dictionary)
+
+    def get_host_name(self):
+        global devices_dictionary
+        for x in range(len(devices_dictionary)):
+            print(devices_dictionary[x]['IP'])
+            value_list = devices_dictionary[x]['IP'].split('.')
+            if value_list[3] == "1":
+                continue
+            try:
+                host_name_value = socket.gethostbyaddr(devices_dictionary[x]['IP'])
+                print(host_name_value[0])
+                devices_dictionary[x]["hostname"] = host_name_value[0]
+            except:
+                continue
+
+    def get_ev3dev_info(self):
+        global ev3dev_devices_info
+        for x in range(len(devices_dictionary)):
+            try:
+                if devices_dictionary[x]['hostname'] == 'ev3dev':
+                    ev3dev_devices_info.append(devices_dictionary[x])
+            except:
+                continue
+
 
 D = Network_operation()
-print(D.arp_scan())
+D.arp_scan()
+D.get_host_name()
+print(devices_dictionary)
+D.get_ev3dev_info()
+print(ev3dev_devices_info)
 
 # get_ip_with_cidr()
 
