@@ -163,7 +163,6 @@ class Network_operation(object):
             except:
                 continue
 
-
 D = Network_operation()
 D.arp_scan()
 D.get_host_name()
